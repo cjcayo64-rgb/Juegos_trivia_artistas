@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Trivia: Artistas y Talleres</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --card-radius:16px;
+    --max-width:820px;
+    --glass: rgba(255,255,255,0.08);
+    --accent: #111;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(180deg,#0f1724 0%, #0b1020 100%);
+    color:#f6f7fb;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px;
+  }
+
+  .app {
+    width:100%;
+    max-width:var(--max-width);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow: 0 10px 30px rgba(2,6,23,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
+    display:grid;
+    grid-template-columns: 1fr 420px;
+  }
+
+  /* Left: game area */
+  .left {
+    padding:28px;
+    min-height:480px;
+  }
+
+  header{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin-bottom:18px;
+  }
+  .logo {
+    width:58px;
+    height:58px;
+    background:linear-gradient(135deg,#ffd27a,#ff7a90);
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#112;
+    font-weight:700;
+    font-family:"Playfair Display", serif;
+    box-shadow: 0 6px 18px rgba(255,121,105,0.12);
+  }
+  h1{
+    font-size:18px;
+    margin:0;
+    line-height:1.05;
+  }
+  p.subtitle { margin:0; opacity:0.8; font-size:13px; }
+
+  .stage {
+    margin-top:8px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+
+  .card {
+    margin-top:18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius: var(--card-radius);
+    padding:18px;
+    box-shadow: 0 6px 18px rgba(3,6,23,0.6);
+  }
+
+  .level-title {
+    font-family:"Playfair Display", serif;
+    font-size:20px;
+    margin:0 0 6px 0;
+    letter-spacing:0.2px;
+  }
+  .level-sub { font-size:13px; opacity:0.85; margin:0 0 8px 0; }
+
+  .question {
+    font-size:16px;
+    margin:12px 0 18px 0;
+    min-height:48px;
+  }
+
+  .options { display:grid; gap:10px; grid-template-columns: 1fr 1fr; }
+  .option {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:10px;
+    padding:12px;
+    cursor:pointer;
+    border:1px solid rgba(255,255,255,0.04);
+    transition: transform .12s ease, box-shadow .12s ease, background .12s;
+    text-align:left;
+    font-weight:600;
+  }
+  .option:hover{ transform:translateY(-4px); box-shadow:0 8px 18px rgba(2,6,23,0.6); }
+  .option.disabled{ opacity:0.6; pointer-events:none; transform:none; }
+
+  .option.correct {
+    background: linear-gradient(90deg,#d1ffd6,#b6ffce);
+    color:#052b08;
+    border-color: rgba(0,0,0,0.05);
+  }
+  .option.wrong {
+    background: linear-gradient(90deg,#ffd6d6,#ffcfcf);
+    color:#3b0000;
+  }
+
+  .controls {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-top:16px;
+  }
+  .btn {
+    padding:10px 14px;
+    background:#0b1220;
+    color:#fff;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.04);
+    cursor:pointer;
+    font-weight:700;
+  }
+  .btn.secondary { background:transparent; border:1px solid rgba(255,255,255,0.06); }
+
+  /* Right: visual / ambient area */
+  .right {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    justify-content:space-between;
+  }
+
+  .ambient {
+    border-radius:12px;
+    padding:16px;
+    min-height:320px;
+    color:#071228;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+  }
+  .ambient h3 { margin:0; font-family:"Playfair Display", serif; }
+  .ambient p { margin:0; opacity:0.9; font-size:13px; }
+
+  .meter {
+    height:12px;
+    background:rgba(0,0,0,0.08);
+    border-radius:8px;
+    overflow:hidden;
+    margin-top:8px;
+  }
+  .meter > i {
+    display:block;
+    height:100%;
+    background:linear-gradient(90deg,#7afcff,#5a9bff);
+    width:0%;
+  }
+
+  .footer {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    font-size:13px;
+    opacity:0.9;
+  }
+
+  /* Level-specific ambient themes */
+  .ambient.lola { background: linear-gradient(180deg,#f8f9fb,#eef2f6); color:#0b1220; box-shadow: inset 0 1px 0 rgba(255,255,255,0.6); }
+  .ambient.minujin { background:linear-gradient(135deg,#ffd6ff,#ffe39f); color:#2b0b24; }
+  .ambient.pajaro { background:linear-gradient(135deg,#e8f2ff,#dff1f0); color:#07182a; }
+  .ambient.lira { background:linear-gradient(135deg,#fff6e8,#ffe9d0); color:#2b1705; }
+  .ambient.mena { background:linear-gradient(135deg,#f3fff1,#e8fff2); color:#062014; }
+
+  /* responsive */
+  @media (max-width:980px){
+    .app { grid-template-columns: 1fr; }
+    .right { order: -1; }
+  }
+  @media (max-width:520px){
+    .options { grid-template-columns:1fr; }
+    .logo { width:48px; height:48px; font-size:14px }
+    .left { padding:16px }
+    .right { padding:12px }
+  }
+
+  /* small toasted feedback */
+  .toast {
+    position:fixed;
+    left:50%;
+    transform:translateX(-50%);
+    bottom:28px;
+    background:#111827;
+    color:#fff;
+    padding:10px 16px;
+    border-radius:999px;
+    box-shadow:0 10px 40px rgba(2,6,23,0.6);
+    opacity:0;
+    transition:opacity .2s ease, transform .2s ease;
+    z-index:9999;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(-6px); }
+</style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="left">
+      <header>
+        <div class="logo">ART</div>
+        <div>
+          <h1>Trivia: Artistas & Talleres</h1>
+          <p class="subtitle">Recorre 5 niveles ambientados. Responde todas las preguntas para avanzar.</p>
+        </div>
+      </header>
+
+      <div class="card" id="gameCard" role="main" aria-live="polite">
+        <div class="stage">
+          <div>
+            <div style="font-size:13px;opacity:0.85">Nivel</div>
+            <div id="levelLabel" style="font-weight:700;font-size:18px">—</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;opacity:0.85">Puntaje</div>
+            <div id="scoreLabel" style="font-weight:700;font-size:18px">0</div>
+          </div>
+        </div>
+
+        <div id="contentArea" style="margin-top:12px">
+          <!-- dynamic content -->
+          <div id="intro" style="padding:10px 2px;">
+            <h2 class="level-title">¡Listo para jugar?</h2>
+            <p class="level-sub">5 niveles listos: Lola Mora, Marta Minujín, Raúl “Pájaro” Gómez, Hernán Lira y Juan de Dios Mena.</p>
+            <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn" id="startBtn">Iniciar juego</button>
+              <button class="btn secondary" id="rulesBtn">Ver reglas</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls" style="margin-top:10px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn secondary" id="prevBtn" disabled>Anterior</button>
+            <button class="btn secondary" id="nextBtn" disabled>Siguiente</button>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;opacity:0.85">Progreso</div>
+            <div class="meter" style="width:160px"><i id="progressBar"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="right">
+      <div id="ambientBox" class="ambient lola">
+        <h3 id="ambientTitle">Ambientación</h3>
+        <p id="ambientText">Aquí aparecerá la ambientación del nivel: colores, época y nota rápida.</p>
+        <div class="meter" style="width:100%"><i id="ambientMeter" style="width:34%"></i></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:13px;opacity:0.85">Niveles completados</div>
+            <div id="completedLabel" style="font-weight:700">0 / 5</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;opacity:0.85">Niveles totales</div>
+            <div style="font-weight:700">5</div>
+          </div>
+        </div>
+        <hr style="opacity:0.06;margin:12px 0">
+        <div style="font-size:13px;opacity:0.9">Consejo: en niveles con herramientas (madera/bronce), fijate en la ambientación a la derecha: te da pistas sobre la técnica del artista.</div>
+      </div>
+
+      <div class="footer">
+        <div>Hecho por: Cristian (demo)</div>
+        <div id="footerStatus">Estado: esperando</div>
+      </div>
+    </aside>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+/*
+  Juego: niveles preparados (5)
+  Cada nivel contiene preguntas con opciones y el índice de la respuesta correcta.
+  El código maneja navegación, puntuación y ambientación visual por nivel.
+*/
+
+// ===== Datos: niveles y preguntas (ya preparados) =====
+const niveles = [
+  // NIVEL: Lola Mora
+  {
+    id: 'lola',
+    title: 'Lola Mora (1866–1936)',
+    ambientClass: 'lola',
+    ambientText: 'Escultura clásica, mármol y formas neoclásicas — finales s. XIX y principios s. XX.',
+    meter: 18, // ambient meter (0-100)
+    preguntas: [
+      { pregunta: '¿En qué año nació Lola Mora?', opciones: ['1866','1902','1840'], correcta: 0 },
+      { pregunta: '¿Cuál de estas obras es de Lola Mora?', opciones: ['Las Nereidas','El Pensador','La Mano'], correcta: 0 },
+      { pregunta: '¿Qué disciplina practicaba Lola Mora?', opciones: ['Escultura','Pintura','Fotografía'], correcta: 0 },
+      { pregunta: '¿En qué ciudad se encuentra la Fuente de las Nereidas?', opciones: ['Buenos Aires','Córdoba','Mendoza'], correcta: 0 }
+    ]
+  },
+
+  // NIVEL: Marta Minujín
+  {
+    id: 'minujin',
+    title: 'Marta Minujín (1943– )',
+    ambientClass: 'minujin',
+    ambientText: 'Pop art, performance y obras participativas; colores, recursos masivos y experimentación.',
+    meter: 86,
+    preguntas: [
+      { pregunta: '¿Qué obra hizo Marta Minujín con libros prohibidos?', opciones: ['El Partenón de Libros','La Torre de Papel','El Obelisco de Pan Dulce'], correcta: 0 },
+      { pregunta: '¿De qué país es Marta Minujín?', opciones: ['Argentina','Brasil','Chile'], correcta: 0 },
+      { pregunta: '¿Cuál es una característica de su obra?', opciones: ['Participativa y monumental','Minimalista y silenciosa','Solo pintura al óleo'], correcta: 0 }
+    ]
+  },
+
+  // NIVEL: Raúl "Pájaro" Gómez
+  {
+    id: 'pajaro',
+    title: 'Raúl "Pájaro" Gómez (1946– )',
+    ambientClass: 'pajaro',
+    ambientText: 'Escultor contemporáneo; estructuras en acero, obras públicas y piezas de gran escala.',
+    meter: 64,
+    preguntas: [
+      { pregunta: '¿En qué año nació Raúl "Pájaro" Gómez?', opciones: ['1946','1956','1939'], correcta: 0 },
+      { pregunta: '¿Dónde estudió escultura?', opciones: ['Escuela Nacional de Bellas Artes "Manuel Belgrano"','Universidad de Buenos Aires','Escuela de Arte Moderna'], correcta: 0 },
+      { pregunta: '¿Cuál obra de estas es suya?', opciones: ['Dibujando Espacios','Las Nereidas','La Fuente del Obelisco'], correcta: 0 },
+      { pregunta: '¿Qué material usa con frecuencia?', opciones: ['Acero','Mármol','Tela'], correcta: 0 }
+    ]
+  },
+
+  // NIVEL: Hernán Lira
+  {
+    id: 'lira',
+    title: 'Hernán Lira',
+    ambientClass: 'lira',
+    ambientText: 'Artesano carpintero: juguetes y móviles en madera reciclada; taller, herramientas y oficio.',
+    meter: 32,
+    preguntas: [
+      { pregunta: '¿Cuál es el oficio principal de Hernán Lira?', opciones: ['Artesano','Fotógrafo','Pintor'], correcta: 0 },
+      { pregunta: '¿Qué produce principalmente?', opciones: ['Juguetes de madera reciclada','Esculturas de bronce','Instalaciones digitales'], correcta: 0 },
+      { pregunta: '¿Qué dice que busca su trabajo?', opciones: ['Rescatar lo manual frente a la era digital','Producir en serie','Automatizar procesos'], correcta: 0 },
+      { pregunta: '¿Qué material usa mayormente?', opciones: ['Maderas recicladas','Plástico','Mármol'], correcta: 0 }
+    ]
+  },
+
+  // NIVEL: Juan de Dios Mena
+  {
+    id: 'mena',
+    title: 'Juan de Dios Mena',
+    ambientClass: 'mena',
+    ambientText: 'Carpintería artesanal: móviles y juguetes hechos a mano con maderas recuperadas.',
+    meter: 46,
+    preguntas: [
+      { pregunta: '¿Qué tipo de objetos crea Juan de Dios Mena?', opciones: ['Juguetes y móviles de madera reciclada','Pinturas al óleo','Esculturas monumentales'], correcta: 0 },
+      { pregunta: '¿Cuál es su objetivo principal al crear?', opciones: ['Resistir a la era digital con lo manual','Ganar premios internacionales','Hacer esculturas de acero'], correcta: 0 },
+      { pregunta: '¿Qué destaca en sus piezas?', opciones: ['Que son únicas y hechas a mano','Que son reproducidas en fábrica','Que tienen circuitos electrónicos'], correcta: 0 },
+      { pregunta: '¿Qué material es su preferido?', opciones: ['Madera recuperada','Plástico reciclado','Acero inoxidable'], correcta: 0 }
+    ]
+  }
+];
+
+// ===== Estado del juego =====
+let nivelIdx = 0;
+let preguntaIdx = 0;
+let score = 0;
+let completed = 0;
+const totalNiveles = niveles.length;
+
+// ===== Elementos DOM =====
+const contentArea = document.getElementById('contentArea');
+const levelLabel = document.getElementById('levelLabel');
+const scoreLabel = document.getElementById('scoreLabel');
+const progressBar = document.getElementById('progressBar');
+const ambientBox = document.getElementById('ambientBox');
+const ambientTitle = document.getElementById('ambientTitle');
+const ambientText = document.getElementById('ambientText');
+const ambientMeter = document.getElementById('ambientMeter');
+const completedLabel = document.getElementById('completedLabel');
+const footerStatus = document.getElementById('footerStatus');
+const toast = document.getElementById('toast');
+
+const startBtn = document.getElementById('startBtn');
+const rulesBtn = document.getElementById('rulesBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+startBtn.addEventListener('click', startGame);
+rulesBtn.addEventListener('click', showRules);
+prevBtn.addEventListener('click', goPrevLevel);
+nextBtn.addEventListener('click', goNextLevel);
+
+// ===== Helpers =====
+function showToast(text, time = 1600){
+  toast.textContent = text;
+  toast.classList.add('show');
+  setTimeout(()=> toast.classList.remove('show'), time);
+}
+
+function updateProgress(){
+  const percent = Math.round(((nivelIdx) / totalNiveles) * 100);
+  progressBar.style.width = percent + '%';
+  completedLabel.textContent = `${completed} / ${totalNiveles}`;
+  scoreLabel.textContent = score;
+  footerStatus.textContent = `Nivel ${nivelIdx+1} / ${totalNiveles}`;
+}
+
+// ===== UI render =====
+function renderIntro(){
+  levelLabel.textContent = '—';
+  contentArea.innerHTML = `
+    <div id="intro" style="padding:10px 2px;">
+      <h2 class="level-title">¡Listo para jugar?</h2>
+      <p class="level-sub">5 niveles listos: Lola Mora, Marta Minujín, Raúl “Pájaro” Gómez, Hernán Lira y Juan de Dios Mena.</p>
+      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn" id="startBtnInline">Iniciar juego</button>
+        <button class="btn secondary" id="rulesBtnInline">Ver reglas</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('startBtnInline').addEventListener('click', startGame);
+  document.getElementById('rulesBtnInline').addEventListener('click', showRules);
+  ambientBox.className = 'ambient lola';
+  ambientTitle.textContent = 'Ambientación';
+  ambientText.textContent = 'Comienza el recorrido: cada nivel tendrá su estética y 3–4 preguntas.';
+  ambientMeter.style.width = '20%';
+  updateProgress();
+}
+
+function showRules(){
+  contentArea.innerHTML = `
+    <div style="padding:8px">
+      <h2 class="level-title">Reglas</h2>
+      <p class="level-sub">Lee rápido:</p>
+      <ul style="text-align:left; margin:12px 0 0 18px; line-height:1.6; color: #e8eefc">
+        <li>Cada nivel tiene 3 o 4 preguntas.</li>
+        <li>Debes responder correctamente para avanzar al siguiente.</li>
+        <li>Si fallás una pregunta, podés intentarla de nuevo hasta acertar.</li>
+        <li>Tu puntaje sube por cada respuesta correcta.</li>
+      </ul>
+      <div style="margin-top:12px">
+        <button class="btn" id="startFromRules">Comenzar</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('startFromRules').addEventListener('click', startGame);
+}
+
+// ===== Game flow =====
+function startGame(){
+  nivelIdx = 0;
+  preguntaIdx = 0;
+  score = 0;
+  completed = 0;
+  prevBtn.disabled = true;
+  nextBtn.disabled = true;
+  renderQuestion();
+  updateProgress();
+}
+
+function renderQuestion(){
+  // bounds
+  const nivel = niveles[nivelIdx];
+  const q = nivel.preguntas[preguntaIdx];
+
+  levelLabel.textContent = `${nivelIdx+1}. ${nivel.title}`;
+  ambientBox.className = 'ambient ' + (nivel.ambientClass || '');
+  ambientTitle.textContent = nivel.title;
+  ambientText.textContent = nivel.ambientText;
+  ambientMeter.style.width = `${nivel.meter}%`;
+
+  // build options
+  let html = `
+    <h2 class="level-title">${nivel.title}</h2>
+    <div class="level-sub">Pregunta ${preguntaIdx+1} de ${nivel.preguntas.length}</div>
+    <div class="question">${escapeHtml(q.pregunta)}</div>
+    <div class="options">
+  `;
+
+  q.opciones.forEach((op, i) => {
+    html += `<button class="option" data-index="${i}">${escapeHtml(op)}</button>`;
+  });
+
+  html += `</div>`;
+
+  contentArea.innerHTML = html;
+
+  // attach handlers
+  document.querySelectorAll('.option').forEach(btn => {
+    btn.addEventListener('click', onOptionClick);
+  });
+
+  // prev/next control
+  prevBtn.disabled = nivelIdx === 0;
+  nextBtn.disabled = true;
+  updateProgress();
+}
+
+function onOptionClick(e){
+  const btn = e.currentTarget;
+  if (btn.classList.contains('disabled')) return;
+  const chosen = parseInt(btn.dataset.index, 10);
+  const nivel = niveles[nivelIdx];
+  const pregunta = nivel.preguntas[preguntaIdx];
+
+  // disable options immediately
+  document.querySelectorAll('.option').forEach(x=> x.classList.add('disabled'));
+
+  if (chosen === pregunta.correcta) {
+    // mark correct
+    btn.classList.add('correct');
+    score += 10; // points per correct answer
+    scoreLabel.textContent = score;
+    showToast('✅ Correcto');
+    // small delay then advance (or to next question of same level)
+    setTimeout(()=>{
+      preguntaIdx++;
+      if (preguntaIdx >= nivel.preguntas.length) {
+        // level complete
+        completed++;
+        showLevelComplete();
+      } else {
+        renderQuestion();
+      }
+    }, 700);
+  } else {
+    // mark wrong and highlight correct
+    btn.classList.add('wrong');
+    // reveal correct option
+    const all = document.querySelectorAll('.option');
+    all.forEach(o=>{
+      if (parseInt(o.dataset.index,10) === pregunta.correcta){
+        o.classList.add('correct');
+      }
+    });
+    showToast('❌ Incorrecto — intentá otra vez', 1400);
+    // allow retry for same question: re-enable wrong ones after short delay (but keep correct marked)
+    setTimeout(()=>{
+      document.querySelectorAll('.option').forEach(x=>{
+        if (!x.classList.contains('correct')) {
+          x.classList.remove('disabled','wrong');
+          // keep the chosen wrong as greyed (optional) -> we'll allow tries: remove disabled
+        }
+      });
+    }, 900);
+  }
+}
+
+function showLevelComplete(){
+  // show a small screen for level completion and enable next
+  const nivel = niveles[nivelIdx];
+  contentArea.innerHTML = `
+    <div style="padding:10px">
+      <h2 class="level-title">¡Nivel completado!</h2>
+      <p class="level-sub">${nivel.title}</p>
+      <div style="margin-top:12px">
+        <p>Completaste las preguntas de este nivel. Puntaje actual: <strong>${score}</strong></p>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn" id="goNext">Siguiente nivel</button>
+          <button class="btn secondary" id="reviewLevel">Revisar respuestas</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('goNext').addEventListener('click', ()=>{
+    nivelIdx++;
+    preguntaIdx = 0;
+    if (nivelIdx >= totalNiveles) {
+      showFinalScreen();
+    } else {
+      renderQuestion();
+    }
+  });
+  document.getElementById('reviewLevel').addEventListener('click', ()=>{
+    // simple recap: show questions and answers for that level
+    showLevelRecap(nivel);
+  });
+
+  prevBtn.disabled = false;
+  nextBtn.disabled = false;
+  updateProgress();
+}
+
+function showLevelRecap(nivel){
+  let html = `<div style="padding:8px"><h2 class="level-title">Recap: ${nivel.title}</h2><div style="margin-top:8px">`;
+  nivel.preguntas.forEach((p, i)=>{
+    const text = `<div style="margin-bottom:10px; text-align:left">
+      <div style="font-weight:700">${i+1}. ${escapeHtml(p.pregunta)}</div>
+      <div style="opacity:0.9; margin-top:4px">Respuesta correcta: <strong>${escapeHtml(p.opciones[p.correcta])}</strong></div>
+    </div>`;
+    html += text;
+  });
+  html += `<div style="margin-top:12px"><button class="btn" id="backToLevel">Volver</button></div></div></div>`;
+  contentArea.innerHTML = html;
+  document.getElementById('backToLevel').addEventListener('click', ()=>{
+    renderQuestion();
+  });
+}
+
+function showFinalScreen(){
+  contentArea.innerHTML = `
+    <div style="padding:10px; text-align:center;">
+      <h2 class="level-title">🎉 ¡Juego completado! 🎉</h2>
+      <p class="level-sub">Terminaste los ${totalNiveles} niveles.</p>
+      <p style="font-size:18px;margin-top:8px">Puntaje final: <strong>${score}</strong></p>
+      <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn" id="replayBtn">Jugar de nuevo</button>
+        <button class="btn secondary" id="shareBtn">Guardar resultado</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('replayBtn').addEventListener('click', startGame);
+  document.getElementById('shareBtn').addEventListener('click', ()=>{
+    // create a simple "share" prompt - copy to clipboard
+    const text = `He completado el Trivia de Artistas: puntaje ${score} / ${totalNiveles*10}`;
+    navigator.clipboard?.writeText(text).then(()=> showToast('Resultado copiado al portapapeles') , ()=> showToast('No se pudo copiar'));
+  });
+  nivelIdx = totalNiveles; // mark as finished
+  updateProgress();
+}
+
+// navigation buttons
+function goPrevLevel(){
+  if (nivelIdx > 0) {
+    nivelIdx = Math.max(0, nivelIdx - 1);
+    preguntaIdx = 0;
+    renderQuestion();
+  }
+}
+function goNextLevel(){
+  if (nivelIdx < totalNiveles - 1) {
+    nivelIdx = Math.min(totalNiveles - 1, nivelIdx + 1);
+    preguntaIdx = 0;
+    renderQuestion();
+  } else if (nivelIdx === totalNiveles - 1) {
+    showFinalScreen();
+  }
+}
+
+// small util: escape HTML
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; });
+}
+
+// initial
+renderIntro();
+updateProgress();
+</script>
+</body>
+</html>
